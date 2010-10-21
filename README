@@ -1,0 +1,28 @@
+Mailgun API wrapper for PHP
+
+Documentation:
+=============
+Please visit our documentation page at 
+http://documentation.mailgun.net
+
+Installation
+============
+* Simply clone this repo
+
+Getting started:
+================
+
+require_once 'Mailgun.php';
+
+mailgun_init('my-api-key', 'https://mailgun.net/api');
+
+$mailboxes = $mailbox->find('all');
+foreach ($mailboxes as $m) {
+    echo $m->p->user."@".$m->p->domain." ".$m->p->size."\n";
+}
+echo "\n";
+
+For more visit http://documentation.mailgun.net
+
+--
+MG team
