@@ -22,7 +22,7 @@ require_once 'ActiveResource.php';
  * @param string $api_key   Your API key 
  * @param string $api_url   API base URL. Must end with backslash. Default is http://maligunhq.com/api/
  */
-function mailgun_init($api_key, $api_url = "http://mailgun.net/api/") {
+function mailgun_init($api_key, $api_url = "https://mailgun.net/api/") {
     global $_mailgun_api_url, $_maigun_api_key;
 
     if ($api_url[strlen($api_url)-1] != "/")
@@ -49,20 +49,18 @@ class MailgunMessage {
     * @param string $servername  sending server (can be empty, use 'best' server)
     */
     static function send_text($sender, $recipients, $subject, $text, $servername="") {
-        global $_mailgun_api_url, $_maigun_api_key;
+        $curl = _mailgun_init_curl("messages.txt");
 
         $params =  'sender='.urlencode($sender).'&recipients='.urlencode($recipients);
         $params .= '&subject='.urlencode($subject).'&servername='.$servername;
         $params .= '&body='.urlencode($text);
 
-        $curl = curl_init($_mailgun_api_url."messages.txt?api_key=".$_maigun_api_key);
-        curl_setopt($curl, CURLOPT_VERBOSE, false);
         curl_setopt($curl, CURLOPT_POST, true); 
         curl_setopt($curl, CURLOPT_POSTFIELDS, $params); 
         curl_setopt($curl, CURLOPT_HEADER, false); 
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
         _mailgun_exec_curl($curl, "Send text message failed");
-    }    
+    }
 
     /**
     * Send MIME-formatted message, as it is
@@ -72,17 +70,14 @@ class MailgunMessage {
     * @param string $raw_body	valid MIME message.
     */
     static function send_raw($sender, $recipients, $raw_body, $servername="") {
-        global $_mailgun_api_url, $_maigun_api_key;
+        $curl = _mailgun_init_curl("messages.eml");
 
         $params = '&servername='.urlencode($servername);
         $req =  $sender."\n".$recipients."\n\n".$raw_body;
         
-        $curl = curl_init($_mailgun_api_url."messages.eml?api_key=".$_maigun_api_key.$params);
-        curl_setopt($curl, CURLOPT_VERBOSE, false);
         curl_setopt($curl, CURLOPT_POST, true); 
         curl_setopt($curl, CURLOPT_POSTFIELDS, $req); 
         curl_setopt($curl, CURLOPT_HEADER, false); 
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: text/plain"));
         _mailgun_exec_curl($curl, "Send raw message failed");
     } 
@@ -216,19 +211,30 @@ class Mailbox extends MailgunResource {
     *                           doe@domain.com, password2
     */
     static function upsert_from_csv($mailboxes) {
-        global $_mailgun_api_url, $_maigun_api_key;
-
-        $curl = curl_init($_mailgun_api_url."mailboxes.txt?api_key=".$_maigun_api_key);
-        curl_setopt($curl, CURLOPT_VERBOSE, false);
+        $curl = _mailgun_init_curl("mailboxes.txt");
         curl_setopt($curl, CURLOPT_POST, true); 
         curl_setopt($curl, CURLOPT_POSTFIELDS, $mailboxes); 
-        curl_setopt($curl, CURLOPT_HEADER, false); 
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: text/plain"));
-        _mailgun_exec_curl($curl, "Send raw message failed");
-    }    
+        _mailgun_exec_curl($curl, "Upsert from csv failed");
+    }
 }
 
+// Init curl with common parameters 
+function _mailgun_init_curl($suffix){
+    global $_mailgun_api_url, $_maigun_api_key;
+    $ch = curl_init ();
+    curl_setopt ($ch, CURLOPT_URL, $_mailgun_api_url."".$suffix);
+    curl_setopt ($ch, CURLOPT_MAXREDIRS, 3);
+    curl_setopt ($ch, CURLOPT_FOLLOWLOCATION, 0);
+    curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt ($ch, CURLOPT_VERBOSE, 0);
+    curl_setopt ($ch, CURLOPT_HEADER, 1);
+    curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 10);
+    curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt ($ch, CURLOPT_USERPWD, "api:" . $_maigun_api_key);
+    return $ch;
+}
 
 // Executes and close cURL session, return server response.
 // Throw error if response is not 2xx.
@@ -246,7 +252,7 @@ function _mailgun_exec_curl($curl, $errmsg) {
     return $res;
 }
 
-$_mailgun_api_url = 'http://mailgun.net/api/';
+$_mailgun_api_url = 'https://mailgun.net/api/';
 $_maigun_api_key = 'api-key-dirty-secret';
 
 // error_reporting(E_ALL);

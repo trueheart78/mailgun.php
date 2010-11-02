@@ -5,9 +5,43 @@ Documentation:
 Please visit our documentation page at 
 http://documentation.mailgun.net
 
-Installation
-============
+Installation:
+=============
 * Simply clone this repo
+
+Samples tryout:
+===============
+> php run_sample.php samples/using-mailboxes.php
+> php run_sample.php samples/sending-messages.php
+> php run_sample.php samples/creating-routes.php
+
+
+PHP-specific issues:
+====================
+
+1. Given an active resource object, eg. $mailbox , use $mailbox->p 
+to get and set mailbox properties safely, like that:
+
+OK:
+$mailbox->p->password = "123456";
+
+NOT OK:
+$mailbox->password = "123456"
+
+That's done to avoid name collision between the ActiveResource's properties
+and the user defined ones.
+
+2. Set api key with care:
+
+OK:
+mailgun_init('my-api-key$b');
+
+NOT OK:
+mailgun_init("my-api-key$b");
+
+The last one is bad because of the variable expansion attempt.
+PHP will think that $b is a variable to be expanded.
+
 
 Getting started:
 ================
