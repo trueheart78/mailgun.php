@@ -37,6 +37,8 @@ function mailgun_init($api_key, $api_url = "https://mailgun.net/api/") {
 *
 * @package Mailgun
 */
+define("MAILGUN_TAG", "X-Mailgun-Tag");
+
 class MailgunMessage {
 
     /**
@@ -47,13 +49,17 @@ class MailgunMessage {
     * @param string $subject     message subject
     * @param string $text        message text
     * @param string $servername  sending server (can be empty, use 'best' server)
+    * @param string $options     JSON dictionary with objects, array("headers" => array(MAILGUN_TAG => "bounce"))
     */
-    static function send_text($sender, $recipients, $subject, $text, $servername="") {
+    static function send_text($sender, $recipients, $subject, $text, $servername="", $options = NULL) {
         $curl = _mailgun_init_curl("messages.txt");
 
         $params =  'sender='.urlencode($sender).'&recipients='.urlencode($recipients);
         $params .= '&subject='.urlencode($subject).'&servername='.$servername;
         $params .= '&body='.urlencode($text);
+        if($options != NULL) {
+            $params .= '&options='.urlencode(json_encode($options));
+        }
 
         curl_setopt($curl, CURLOPT_POST, true); 
         curl_setopt($curl, CURLOPT_POSTFIELDS, $params); 
