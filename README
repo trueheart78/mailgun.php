@@ -49,7 +49,7 @@ Getting started:
 require_once 'Mailgun.php';
 
 mailgun_init('my-api-key', 'https://mailgun.net/api');
-
+$mailbox = new Mailbox();
 $mailboxes = $mailbox->find('all');
 foreach ($mailboxes as $m) {
     echo $m->p->user."@".$m->p->domain." ".$m->p->size."\n";
