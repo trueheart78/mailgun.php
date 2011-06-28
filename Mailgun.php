@@ -76,7 +76,10 @@ class MailgunMessage {
     * @param string $raw_body	valid MIME message.
     */
     static function send_raw($sender, $recipients, $raw_body, $servername="") {
-        $curl = _mailgun_init_curl("messages.eml");
+        if ($servername)
+            $curl = _mailgun_init_curl("messages.eml?servername=".$servername);
+        else
+            $curl = _mailgun_init_curl("messages.eml");
 
         $params = '&servername='.urlencode($servername);
         $req =  $sender."\n".$recipients."\n\n".$raw_body;
