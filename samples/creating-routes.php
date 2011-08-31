@@ -4,7 +4,7 @@ require_once 'Mailgun.php';
 mailgun_init('key-afy6amxoo2fnj$u@mc');
 
 // Messages coming to @samples.mailgun.org will be HTTP POSTed to /post page:
-$route = new Route("*@samples.mailgun.org", "http://samples.mailgun.org/post");
+$route = new Route(".*@samples.mailgun.org", "http://samples.mailgun.org/post");
 $route->upsert();
 
 print_routes();
